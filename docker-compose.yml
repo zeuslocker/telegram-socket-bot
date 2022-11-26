@@ -6,10 +6,14 @@ services:
         container_name: telegram-socket-bot_app
         build: .
         depends_on:
-            - mongo
-            - mysql
+            mysql:
+              condition: service_started
+            mongo:
+              condition: service_started
+        links: 
+             - mysql   
         ports:
-            - 80:80
+            - 8080:80
     mongo:
         container_name: telegram-socket-bot_mongo
         image: mongo:4.4.3-bionic
@@ -31,9 +35,45 @@ services:
             - telegram-socket-bot_logs:/var/lib/
             # Create the initial db configuration on container creation
             - ./setup.sql:/docker-entrypoint-initdb.d/setup.sql
+        healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 1s
+            retries: 3
         ports:
             - 3306:3306
+    webserver:
+        image: nginx:mainline-alpine
+        container_name: webserver
+        restart: unless-stopped
+        ports:
+        - "80:80"
+        volumes:
+        - web-root:/var/www/html
+        - ./nginx-conf:/etc/nginx/conf.d
+        - certbot-etc:/etc/letsencrypt
+        - certbot-var:/var/lib/letsencrypt
+        depends_on:
+        - app
+        networks:
+        - app-network
+
+    certbot:
+        image: certbot/certbot
+        container_name: certbot
+        volumes:
+        - certbot-etc:/etc/letsencrypt
+        - certbot-var:/var/lib/letsencrypt
+        - web-root:/var/www/html
+        depends_on:
+        - webserver
+        command: certonly --webroot --webroot-path=/var/www/html --email lapan40@ukr.net --agree-tos --no-eff-email --staging -d solarwebgg.com  -d www.solarwebgg.com
 
 volumes:
     telegram-socket-bot_data:
     telegram-socket-bot_logs:
+    certbot-etc:
+    certbot-var:
+    web-root:
+
+networks:
+  app-network:
