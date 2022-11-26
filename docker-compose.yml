@@ -32,7 +32,7 @@ services:
             # Create the initial db configuration on container creation
             - ./setup.sql:/docker-entrypoint-initdb.d/setup.sql
         ports:
-            - 3310:3306
+            - 3306:3306
 
 volumes:
     telegram-socket-bot_data:
