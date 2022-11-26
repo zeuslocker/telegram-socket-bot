@@ -9,21 +9,27 @@ FROM node:15.8.0-alpine3.10
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories && \
     echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
 
+ENV NODE_ENV production
+
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apk update \
     && apk add git \
-    && apk add nano
+    && apk add dumb-init
 
 # Use system binaries for Mongo Memory Server
 RUN apk add mongodb=4.0.5-r0 || true
 ENV MONGOMS_SYSTEM_BINARY="/usr/bin/mongod"
 
-# [Optional] Uncomment if you want to install an additional version of node using nvm
-# ARG EXTRA_NODE_VERSION=10
-# RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
-# [Optional] Uncomment if you want to install more global node modules
-RUN npm install -g npm-check-updates
 
-# Add external node_modules binaries
-ENV PATH="/node_modules/.bin/:${PATH}"
+CMD ["node", "build/index.js"]
+
+
+FROM node:16.17.0-bullseye-slim
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init
+ENV NODE_ENV production
+WORKDIR /app
+COPY --chown=node:node . .
+RUN npm ci --only=production
+USER node
+CMD ["dumb-init", "node", "/app/build/index.js"]
