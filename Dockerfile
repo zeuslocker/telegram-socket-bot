@@ -10,6 +10,11 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositori
     echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
 
 ENV NODE_ENV production
+ENV PORT 8080
+
+WORKDIR /app
+COPY --chown=node:node . .
+RUN npm ci --only=production
 
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apk update \
@@ -20,19 +25,7 @@ RUN apk update \
 RUN apk add mongodb=4.0.5-r0 || true
 ENV MONGOMS_SYSTEM_BINARY="/usr/bin/mongod"
 
-
-
-CMD ["node", "build/index.js"]
-
-
-FROM node:16.17.0-bullseye-slim
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init
-ENV NODE_ENV production
-WORKDIR /app
-COPY --chown=node:node . .
-RUN npm ci --only=production
 USER node
-ENV PORT 8080
-EXPOSE 8080
 
-CMD ["dumb-init", "node", "/app/build/index.js"]
+
+CMD ["node", "/app/build/index.js"]
