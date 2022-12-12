@@ -32,4 +32,7 @@ WORKDIR /app
 COPY --chown=node:node . .
 RUN npm ci --only=production
 USER node
+ENV PORT 8080
+EXPOSE 8080
+
 CMD ["dumb-init", "node", "/app/build/index.js"]
