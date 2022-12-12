@@ -9,13 +9,10 @@ FROM node:15.8.0-alpine3.10
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories && \
     echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
 
-ENV NODE_ENV production
-ENV PORT 8080
-
 WORKDIR /app
 COPY --chown=node:node . .
-RUN npm ci --only=production
-
+RUN npm install
+RUN npm run 'BUILD'
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apk update \
     && apk add git \
@@ -23,7 +20,11 @@ RUN apk update \
 
 # Use system binaries for Mongo Memory Server
 RUN apk add mongodb=4.0.5-r0 || true
+
 ENV MONGOMS_SYSTEM_BINARY="/usr/bin/mongod"
+ENV NODE_ENV production
+ENV PORT 8080
+EXPOSE 8080
 
 USER node
 
