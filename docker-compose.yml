@@ -70,7 +70,7 @@ services:
     command: certonly --webroot --webroot-path=/var/www/html --email sammy@solarwebgg.com --agree-tos --no-eff-email --force-renewal -d solarwebgg.com  -d www.solarwebgg.com
 
 volumes:
- telegram-socket-bot_data:
+  telegram-socket-bot_data:
   telegram-socket-bot_logs:
   certbot-etc:
   certbot-var:
